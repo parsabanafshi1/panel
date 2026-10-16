@@ -1,2 +1,2 @@
-bigmc.ir - Online - 93/96 players - "§r§f مشکل وارد نشدن برای نسخه های مشکل دار حل شد            §r §r§6انتخاب نام و احراز گرافیکی اضافه شد - قابلیت تغییر رمز حساب اضافه شد§r"
-mc.pika-network.net - Online - 3076/6500 players - "§r§e§lPika§r§c§lNetwork        §r§7[1.8 - 26.3]     §r§2§lSURVIVAL 2.0 RELEASE: §r§a20h, 33m§r"
+bigmc.ir - Online - 75/78 players - "§r§f مشکل وارد نشدن برای نسخه های مشکل دار حل شد            §r §r§6انتخاب نام و احراز گرافیکی اضافه شد - قابلیت تغییر رمز حساب اضافه شد§r"
+mc.pika-network.net - Online - 2437/6500 players - "§r§e§lPika§r§c§lNetwork        §r§7[1.8 - 26.3]     §r§2§lSURVIVAL 2.0 RELEASE: §r§a16h, 46m§r"
