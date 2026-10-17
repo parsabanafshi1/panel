@@ -33,22 +33,22 @@ def main():
             maxp = status.players.max
             motd = extract_motd(status.description).replace("\n", " ").replace('"', "'")
 
-            # دیباگ: چک کن favicon هست یا نه
-            print(f"[DEBUG] {addr}: favicon attr = {hasattr(status, 'favicon')}")
-            if hasattr(status, "favicon"):
-                fv = status.favicon
-                print(f"[DEBUG] {addr}: favicon value = {'None' if fv is None else (fv[:80] + '...' if len(str(fv)) > 80 else fv)}")
-
-            favicon = ""
-            if hasattr(status, "favicon") and status.favicon:
-                favicon = status.favicon
-                print(f"[DEBUG] {addr}: favicon length = {len(favicon)}")
+            # نسخه‌های جدید mcstatus از icon استفاده می‌کنن، نه favicon
+            icon = ""
+            if hasattr(status, "icon") and status.icon:
+                icon = status.icon
+                print(f"[DEBUG] {addr}: icon found, length = {len(icon)}")
+            elif hasattr(status, "favicon") and status.favicon:
+                icon = status.favicon
+                print(f"[DEBUG] {addr}: favicon found, length = {len(icon)}")
+            else:
+                print(f"[DEBUG] {addr}: no icon attribute found or value is None")
 
             line = f'{addr} - Online - {online}/{maxp} players - "{motd}"'
-            if favicon:
-                line += f' | {favicon}'
+            if icon:
+                line += f' | {icon}'
             results.append(line)
-            print(f"[OK] {addr} -> {online}/{maxp} (icon: {'yes' if favicon else 'no'})")
+            print(f"[OK] {addr} -> {online}/{maxp} (icon: {'yes' if icon else 'no'})")
         except Exception as e:
             results.append(f"{addr} - Offline")
             print(f"[FAIL] {addr} -> {e}")
