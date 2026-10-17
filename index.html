@@ -39,13 +39,32 @@
         .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(168,85,247,0.2); }
         .card.online { border-left: 4px solid #22c55e; }
         .card.offline { border-left: 4px solid #ef4444; opacity: 0.7; }
+
+        /* هدر کارت: آیکون + اسم سرور */
+        .server-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .server-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            image-rendering: pixelated;
+            flex-shrink: 0;
+            background: rgba(0,0,0,0.3);
+            object-fit: cover;
+        }
         .server-name {
-            font-size: 1.3em;
+            font-size: 1.2em;
             font-weight: bold;
-            margin-bottom: 10px;
             word-break: break-all;
             color: #a855f7;
+            direction: ltr;
+            text-align: right;
         }
+
         .status {
             display: inline-block;
             padding: 4px 12px;
@@ -56,10 +75,12 @@
         }
         .status.online { background: rgba(34,197,94,0.2); color: #22c55e; }
         .status.offline { background: rgba(239,68,68,0.2); color: #ef4444; }
+
         .players { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 1.1em; }
         .players .icon { font-size: 1.3em; }
         .players .count { color: #fbbf24; font-weight: bold; }
         .players .max { color: #888; }
+
         .motd {
             background: rgba(0,0,0,0.4);
             padding: 12px;
@@ -70,7 +91,10 @@
             font-family: 'Consolas', 'Minecraft', monospace;
             line-height: 1.6;
             min-height: 40px;
+            direction: ltr;
+            text-align: left;
         }
+
         .progress-bar {
             width: 100%;
             height: 6px;
@@ -84,7 +108,9 @@
             background: linear-gradient(90deg, #a855f7, #ec4899);
             transition: width 0.5s ease;
         }
+
         .empty, .error { text-align: center; padding: 60px 20px; color: #666; }
+        .error { color: #ef4444; }
         footer { text-align: center; margin-top: 50px; color: #555; font-size: 0.9em; }
     </style>
 </head>
@@ -114,6 +140,7 @@
             return div.innerHTML;
         }
 
+        // تبدیل MOTD ماینکرفت به HTML با رنگ و فرمت
         function motdToHtml(motd) {
             if (!motd) return '';
             let html = '';
@@ -154,29 +181,48 @@
             return html;
         }
 
+        // پارس کردن هر خط ping.txt
+        // فرمت: IP - Online - X/Y players - "MOTD" | data:image/png;base64,...
         function parseLine(line) {
-            const parts = line.split(' - ');
+            // جدا کردن آیکون با " | "
+            const iconSplit = line.split(' | ');
+            const mainPart = iconSplit[0];
+            const favicon = iconSplit[1] || '';
+
+            const parts = mainPart.split(' - ');
             const addr = parts[0].trim();
             const status = parts[1] ? parts[1].trim() : 'Unknown';
+
             if (status === 'Offline') {
-                return { addr, online:false, players:0, max:0, motd:'' };
+                return { addr, online: false, players: 0, max: 0, motd: '', favicon: '' };
             }
+
             const playerPart = parts[2] || '0/0 players';
             const match = playerPart.match(/(\d+)\/(\d+)/);
             const players = match ? parseInt(match[1]) : 0;
             const max = match ? parseInt(match[2]) : 0;
             const motdPart = parts.slice(3).join(' - ').trim();
             const motd = motdPart.replace(/^"|"$/g, '');
-            return { addr, online:true, players, max, motd };
+
+            return { addr, online: true, players, max, motd, favicon };
         }
 
+        // ساخت کارت هر سرور
         function createCard(s) {
             const card = document.createElement('div');
             card.className = 'card ' + (s.online ? 'online' : 'offline');
             const percent = s.max > 0 ? (s.players / s.max * 100) : 0;
 
+            // آیکون: اگه favicon داشت نشون بده
+            const iconHtml = s.favicon
+                ? `<img class="server-icon" src="${s.favicon}" alt="icon" onerror="this.style.display='none'">`
+                : `<div class="server-icon" style="display:flex;align-items:center;justify-content:center;font-size:1.5em;">🎮</div>`;
+
             card.innerHTML = `
-                <div class="server-name">${escapeHtml(s.addr)}</div>
+                <div class="server-header">
+                    ${iconHtml}
+                    <div class="server-name">${escapeHtml(s.addr)}</div>
+                </div>
                 <span class="status ${s.online ? 'online' : 'offline'}">
                     ${s.online ? '● آنلاین' : '● آفلاین'}
                 </span>
@@ -195,6 +241,7 @@
             return card;
         }
 
+        // بارگذاری ping.txt و ساخت کارت‌ها
         async function loadServers() {
             const grid = document.getElementById('serversGrid');
             const lastUpdate = document.getElementById('lastUpdate');
@@ -203,10 +250,12 @@
                 if (!response.ok) throw new Error('ping.txt یافت نشد');
                 const text = await response.text();
                 const lines = text.split('\n').filter(l => l.trim());
+
                 if (lines.length === 0) {
                     grid.innerHTML = '<div class="empty">هیچ سروری تعریف نشده</div>';
                     return;
                 }
+
                 grid.innerHTML = '';
                 lines.forEach(line => grid.appendChild(createCard(parseLine(line))));
                 lastUpdate.textContent = 'آخرین آپدیت: ' + new Date().toLocaleString('fa-IR');
