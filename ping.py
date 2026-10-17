@@ -32,13 +32,12 @@ def main():
             online = status.players.online
             maxp = status.players.max
             motd = extract_motd(status.description).replace("\n", " ").replace('"', "'")
-            
-            # گرفتن آیکون سرور (Base64)
+
+            # گرفتن آیکون سرور (Base64 data URI)
             favicon = ""
-            if hasattr(status, 'favicon') and status.favicon:
-                favicon = status.favicon  # این خودش یه data URI کامل هست
-            
-            # فرمت: IP - Online - X/Y players - "MOTD" | FAVICON
+            if hasattr(status, "favicon") and status.favicon:
+                favicon = status.favicon
+
             line = f'{addr} - Online - {online}/{maxp} players - "{motd}"'
             if favicon:
                 line += f' | {favicon}'
