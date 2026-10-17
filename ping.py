@@ -6,7 +6,6 @@ OUTPUT_FILE = "ping.txt"
 TIMEOUT = 5
 
 def extract_motd(motd):
-    """MOTD رو با کدهای رنگ اصلی برمی‌گردونه"""
     if isinstance(motd, dict):
         text = motd.get("text", "")
         for e in motd.get("extra", []):
@@ -33,8 +32,18 @@ def main():
             online = status.players.online
             maxp = status.players.max
             motd = extract_motd(status.description).replace("\n", " ").replace('"', "'")
-            results.append(f'{addr} - Online - {online}/{maxp} players - "{motd}"')
-            print(f"[OK] {addr} -> {online}/{maxp}")
+            
+            # گرفتن آیکون سرور (Base64)
+            favicon = ""
+            if hasattr(status, 'favicon') and status.favicon:
+                favicon = status.favicon  # این خودش یه data URI کامل هست
+            
+            # فرمت: IP - Online - X/Y players - "MOTD" | FAVICON
+            line = f'{addr} - Online - {online}/{maxp} players - "{motd}"'
+            if favicon:
+                line += f' | {favicon}'
+            results.append(line)
+            print(f"[OK] {addr} -> {online}/{maxp} (icon: {'yes' if favicon else 'no'})")
         except Exception as e:
             results.append(f"{addr} - Offline")
             print(f"[FAIL] {addr} -> {e}")
