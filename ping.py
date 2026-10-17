@@ -5,6 +5,18 @@ INPUT_FILE = "server.txt"
 OUTPUT_FILE = "ping.txt"
 TIMEOUT = 5
 
+def extract_motd(motd):
+    """MOTD رو با کدهای رنگ اصلی برمی‌گردونه"""
+    if isinstance(motd, dict):
+        text = motd.get("text", "")
+        for e in motd.get("extra", []):
+            if isinstance(e, dict):
+                text += e.get("text", "")
+            else:
+                text += str(e)
+        return text
+    return str(motd)
+
 def main():
     if not os.path.exists(INPUT_FILE):
         print(f"'{INPUT_FILE}' not found!")
@@ -20,12 +32,8 @@ def main():
             status = server.status()
             online = status.players.online
             maxp = status.players.max
-            motd = status.description
-            # MOTD ممکنه dict باشه (برای سرورهای جدید)
-            if isinstance(motd, dict):
-                motd = motd.get("text", "") or str(motd)
-            motd = str(motd).replace("\n", " ").strip()
-            results.append(f"{addr} - Online - {online}/{maxp} players - \"{motd}\"")
+            motd = extract_motd(status.description).replace("\n", " ").replace('"', "'")
+            results.append(f'{addr} - Online - {online}/{maxp} players - "{motd}"')
             print(f"[OK] {addr} -> {online}/{maxp}")
         except Exception as e:
             results.append(f"{addr} - Offline")
