@@ -30,7 +30,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install mcstatus
+        run: |
+          pip cache purge
+          pip install --upgrade --no-cache-dir "mcstatus>=11.1.0"
 
       - name: Run ping script
         run: python ping.py
@@ -41,9 +43,9 @@ jobs:
       - name: Commit and push results
         run: |
           git config user.name "Minecraft Servers"
-          git config user.email "MCnew[bot]@users.noreply.github.com"
+          git config user.email "parsabanafshi1@users.noreply.github.com"
           git add ping.txt
-          git diff --cached --quiet && echo "No changes" || git commit -m "Update ping.txt [skip ci]"
+          git diff --cached --quiet && echo "No changes" || git commit -m "🤖 Update ping.txt [skip ci]"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
