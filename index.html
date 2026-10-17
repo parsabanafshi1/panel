@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>وضعیت سرورهای ماینکرفت</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
             background: linear-gradient(135deg, #1e1e2e 0%, #2d1b3d 100%);
             color: #fff;
             min-height: 100vh;
@@ -55,6 +56,17 @@
             flex-shrink: 0;
             background: rgba(0,0,0,0.3);
             object-fit: cover;
+        }
+        .server-icon-placeholder {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            background: rgba(168,85,247,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
         }
         .server-name {
             font-size: 1.2em;
@@ -140,7 +152,6 @@
             return div.innerHTML;
         }
 
-        // تبدیل MOTD ماینکرفت به HTML با رنگ و فرمت
         function motdToHtml(motd) {
             if (!motd) return '';
             let html = '';
@@ -181,10 +192,8 @@
             return html;
         }
 
-        // پارس کردن هر خط ping.txt
-        // فرمت: IP - Online - X/Y players - "MOTD" | data:image/png;base64,...
+        // فرمت خط: IP - Online - X/Y players - "MOTD" | data:image/png;base64,...
         function parseLine(line) {
-            // جدا کردن آیکون با " | "
             const iconSplit = line.split(' | ');
             const mainPart = iconSplit[0];
             const favicon = iconSplit[1] || '';
@@ -207,16 +216,15 @@
             return { addr, online: true, players, max, motd, favicon };
         }
 
-        // ساخت کارت هر سرور
         function createCard(s) {
             const card = document.createElement('div');
             card.className = 'card ' + (s.online ? 'online' : 'offline');
             const percent = s.max > 0 ? (s.players / s.max * 100) : 0;
 
-            // آیکون: اگه favicon داشت نشون بده
+            // لوگوی سرور: اگه favicon داشت، عکس؛ وگرنه placeholder
             const iconHtml = s.favicon
-                ? `<img class="server-icon" src="${s.favicon}" alt="icon" onerror="this.style.display='none'">`
-                : `<div class="server-icon" style="display:flex;align-items:center;justify-content:center;font-size:1.5em;">🎮</div>`;
+                ? `<img class="server-icon" src="${s.favicon}" alt="server icon" onerror="this.outerHTML='<div class=\\'server-icon-placeholder\\'>🎮</div>'">`
+                : `<div class="server-icon-placeholder">🎮</div>`;
 
             card.innerHTML = `
                 <div class="server-header">
@@ -241,7 +249,6 @@
             return card;
         }
 
-        // بارگذاری ping.txt و ساخت کارت‌ها
         async function loadServers() {
             const grid = document.getElementById('serversGrid');
             const lastUpdate = document.getElementById('lastUpdate');
