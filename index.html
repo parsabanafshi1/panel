@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وضعیت سرورهای ماینکرفت</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d1b3d 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .last-update {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.2);
+        }
+        .card.online {
+            border-left: 4px solid #22c55e;
+        }
+        .card.offline {
+            border-left: 4px solid #ef4444;
+            opacity: 0.7;
+        }
+        .server-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            word-break: break-all;
+            color: #a855f7;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .status.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .status.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .players {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        .players .icon {
+            font-size: 1.3em;
+        }
+        .players .count {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+        .players .max {
+            color: #888;
+        }
+        .motd {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            color: #ccc;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            font-family: 'Consolas', monospace;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            transition: width 0.5s ease;
+        }
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 12px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #555;
+            font-size: 0.9em;
+        }
+        footer a {
+            color: #a855f7;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 وضعیت سرورهای ماینکرفت</h1>
+        <p class="subtitle">لیست سرورها و وضعیت آنلاین بودنشون</p>
+        <p class="last-update" id="lastUpdate">در حال بارگذاری...</p>
+
+        <div class="grid" id="serversGrid">
+            <div class="empty">در حال بارگذاری...</div>
+        </div>
+
+        <footer>
+            ساخته شده با ❤️ — آپدیت خودکار هر ۶ ساعت |
+            <a href="https://github.com" target="_blank">GitHub</a>
+        </footer>
+    </div>
+
+    <script>
+        async function loadServers() {
+            const grid = document.getElementById('serversGrid');
+            const lastUpdate = document.getElementById('lastUpdate');
+
+            try {
+                // خواندن ping.txt از root سایت
+                const response = await fetch('ping.txt?t=' + Date.now());
+                if (!response.ok) {
+                    throw new Error('ping.txt یافت نشد');
+                }
+                const text = await response.text();
+                const lines = text.split('\n').filter(l => l.trim());
+
+                if (lines.length === 0) {
+                    grid.innerHTML = '<div class="empty">هیچ سروری تعریف نشده</div>';
+                    return;
+                }
+
+                grid.innerHTML = '';
+                lines.forEach(line => {
+                    const server = parseLine(line);
+                    grid.appendChild(createCard(server));
+                });
+
+                lastUpdate.textContent = 'آخرین آپدیت: ' + new Date().toLocaleString('fa-IR');
+
+            } catch (err) {
+                grid.innerHTML = `<div class="error">خطا در بارگذاری: ${err.message}</div>`;
+            }
+        }
+
+        function parseLine(line) {
+            // فرمت: IP - Online - 45/100 players - "MOTD"
+            const parts = line.split(' - ');
+            const addr = parts[0].trim();
+            const status = parts[1] ? parts[1].trim() : 'Unknown';
+
+            if (status === 'Offline') {
+                return { addr, online: false, players: 0, max: 0, motd: '' };
+            }
+
+            const playerPart = parts[2] || '0/0 players';
+            const match = playerPart.match(/(\d+)\/(\d+)/);
+            const players = match ? parseInt(match[1]) : 0;
+            const max = match ? parseInt(match[2]) : 0;
+
+            const motdPart = parts.slice(3).join(' - ').trim();
+            const motd = motdPart.replace(/^"|"$/g, '');
+
+            return { addr, online: true, players, max, motd };
+        }
+
+        function createCard(s) {
+            const card = document.createElement('div');
+            card.className = 'card ' + (s.online ? 'online' : 'offline');
+
+            const percent = s.max > 0 ? (s.players / s.max * 100) : 0;
+
+            card.innerHTML = `
+                <div class="server-name">${escapeHtml(s.addr)}</div>
+                <span class="status ${s.online ? 'online' : 'offline'}">
+                    ${s.online ? '● آنلاین' : '● آفلاین'}
+                </span>
+                ${s.online ? `
+                    <div class="players">
+                        <span class="icon">👥</span>
+                        <span class="count">${s.players}</span>
+                        <span class="max">/ ${s.max}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percent}%"></div>
+                    </div>
+                    ${s.motd ? `<div class="motd" style="margin-top:15px;">${escapeHtml(s.motd)}</div>` : ''}
+                ` : '<div class="motd">سرور در حال حاضر آفلاین است</div>'}
+            `;
+
+            return card;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // بارگذاری اولیه
+        loadServers();
+
+        // رفرش هر ۵ دقیقه
+        setInterval(loadServers, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
