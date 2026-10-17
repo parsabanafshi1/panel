@@ -33,10 +33,16 @@ def main():
             maxp = status.players.max
             motd = extract_motd(status.description).replace("\n", " ").replace('"', "'")
 
-            # گرفتن آیکون سرور (Base64 data URI)
+            # دیباگ: چک کن favicon هست یا نه
+            print(f"[DEBUG] {addr}: favicon attr = {hasattr(status, 'favicon')}")
+            if hasattr(status, "favicon"):
+                fv = status.favicon
+                print(f"[DEBUG] {addr}: favicon value = {'None' if fv is None else (fv[:80] + '...' if len(str(fv)) > 80 else fv)}")
+
             favicon = ""
             if hasattr(status, "favicon") and status.favicon:
                 favicon = status.favicon
+                print(f"[DEBUG] {addr}: favicon length = {len(favicon)}")
 
             line = f'{addr} - Online - {online}/{maxp} players - "{motd}"'
             if favicon:
