@@ -3,7 +3,7 @@
 <div align="center">
 
 <img src="https://avatars.githubusercontent.com/u/310891506" width="180" style="border-radius: 50%; border: 4px solid #a855f7; box-shadow: 0 0 30px #a855f7;" alt="TheAghaBanafshi" />
--
+
 # سلام، من آقا بنفشی هستم! 👋
 
 <p>
